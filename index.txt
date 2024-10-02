@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Стильный счётчик кликов</title>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f3f4f6; /* Изменён фон на светлый */
+            transition: background 0.5s ease;
+        }
+
+        #interface {
+            text-align: center;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 300px;
+            position: relative;
+        }
+
+        .counter-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #4caf50, #388e3c);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .counter-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .counter-text {
+            font-size: 48px;
+            font-weight: bold;
+            transition: color 0.3s ease;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .version {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .upgrade-panel {
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .upgrade-button, .autoclicker-button {
+            padding: 10px 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background: #2196f3;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .upgrade-button:hover, .autoclicker-button:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .autoclicker-button {
+            background: #f44336;
+        }
+
+        .autoclicker-button:hover {
+            background: #d32f2f;
+        }
+
+        .autoclicker-active {
+            background: #4caf50;
+        }
+
+        .reset-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div id="interface">
+        <button class="counter-button" onclick="incrementCounter()">
+            <span class="counter-text">0</span>
+        </button>
+
+        <div class="version">v4.0</div>
+
+        <div class="upgrade-panel">
+            <h3>Уровень мульти-кликов: <span id="click-multiplier-level">1</span></h3>
+            <p>Стоимость улучшения: <span id="upgrade-cost">100</span> кликов</p>
+            <button class="upgrade-button" onclick="upgradeMultiplier()">Улучшить мульти-клик</button>
+            
+            <h3>Автокликер</h3>
+            <button class="autoclicker-button" id="toggle-autoclicker-btn" onclick="toggleAutoclicker()">Активировать автокликер</button>
+        </div>
+
+        <h3>Счётчик рублей: <span id="rubles-amount">0.00</span> руб.</h3>
+        
+        <!-- Кнопка сброса игры -->
+        <button class="reset-button" onclick="resetGame()">Сбросить игру</button>
+    </div>
+
+    <script>
+        let count = 0;
+        let clickMultiplier = 1;
+        let upgradeCost = 100;
+        let autoclickerActive = false;
+        let autoclickerInterval = 1000; // Начальная скорость автокликера
+        let autoclickerIntervalId = null; // ID для автокликера
+
+        // Функция для сохранения состояния игры
+        function saveGameState() {
+            localStorage.setItem('count', count);
+            localStorage.setItem('clickMultiplier', clickMultiplier);
+            localStorage.setItem('upgradeCost', upgradeCost);
+            localStorage.setItem('autoclickerActive', autoclickerActive);
+            localStorage.setItem('autoclickerInterval', autoclickerInterval);
+        }
+
+        // Функция для загрузки состояния игры
+        function loadGameState() {
+            const savedCount = localStorage.getItem('count');
+            const savedClickMultiplier = localStorage.getItem('clickMultiplier');
+            const savedUpgradeCost = localStorage.getItem('upgradeCost');
+            const savedAutoclickerActive = localStorage.getItem('autoclickerActive');
+            const savedAutoclickerInterval = localStorage.getItem('autoclickerInterval');
+
+            if (savedCount !== null) count = parseInt(savedCount, 10);
+            if (savedClickMultiplier !== null) clickMultiplier = parseInt(savedClickMultiplier, 10);
+            if (savedUpgradeCost !== null) upgradeCost = parseInt(savedUpgradeCost, 10);
+            if (savedAutoclickerActive !== null) autoclickerActive = (savedAutoclickerActive === 'true');
+            if (savedAutoclickerInterval !== null) autoclickerInterval = parseInt(savedAutoclickerInterval, 10);
+
+            document.querySelector('.counter-text').innerText = count;
+            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
+            document.getElementById('upgrade-cost').innerText = upgradeCost;
+            document.getElementById('rubles-amount').innerText = (Math.floor(count / 1000)).toFixed(2); // Форматирование на 2 знака после запятой
+        }
+
+        // Функция для сброса игры
+        function resetGame() {
+            count = 0;
+            clickMultiplier = 1;
+            upgradeCost = 100;
+            autoclickerActive = false;
+            document.querySelector('.counter-text').innerText = count;
+            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
+            document.getElementById('upgrade-cost').innerText = upgradeCost;
+            document.getElementById('rubles-amount').innerText = "0.00"; // Сброс рублей
+            saveGameState();
+            stopAutoclicker(); // Остановка автокликера при сбросе
+        }
+
+        // Функция для увеличения счётчика кликов
+        function incrementCounter() {
+            count += clickMultiplier;
+            document.querySelector('.counter-text').innerText = count;
+            document.getElementById('rubles-amount').innerText = (Math.floor(count / 1000)).toFixed(2); // Форматирование на 2 знака после запятой
+
+            if (count >= upgradeCost) {
+                document.querySelector('.upgrade-button').disabled = false;
+            }
+            saveGameState();
+        }
+
+        // Функция для улучшения мульти-клика
+        function upgradeMultiplier() {
+            if (count >= upgradeCost) {
+                count -= upgradeCost;
+                clickMultiplier += 1; // Увеличиваем мульти-клик
+                upgradeCost = Math.floor(upgradeCost * 1.5); // Увеличиваем стоимость улучшения
+                document.getElementById('upgrade-cost').innerText = upgradeCost;
+                document.getElementById('click-multiplier-level').innerText = clickMultiplier;
+                document.querySelector('.counter-text').innerText = count;
+                document.getElementById('rubles-amount').innerText = (Math.floor(count / 1000)).toFixed(2); // Форматирование на 2 знака после запятой
+                saveGameState();
+            }
+        }
+
+        // Функция для активации/деактивации автокликера
+        function toggleAutoclicker() {
+            autoclickerActive = !autoclickerActive;
+            document.getElementById('toggle-autoclicker-btn').innerText = autoclickerActive ? 'Остановить автокликер' : 'Активировать автокликер';
+            if (autoclickerActive) {
+                startAutoclicker();
+            } else {
+                stopAutoclicker();
+            }
+            saveGameState();
+        }
+
+        // Функция для старта автокликера
+        function startAutoclicker() {
+            autoclickerIntervalId = setInterval(incrementCounter, autoclickerInterval);
+            document.getElementById('toggle-autoclicker-btn').classList.add('autoclicker-active');
+        }
+
+        // Функция для остановки автокликера
+        function stopAutoclicker() {
+            clearInterval(autoclickerIntervalId);
+            document.getElementById('toggle-autoclicker-btn').classList.remove('autoclicker-active');
+        }
+
+        // Загрузка состояния игры при инициализации
+        loadGameState();
+    </script>
+</body>
+</html>
