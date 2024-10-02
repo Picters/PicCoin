@@ -19,6 +19,7 @@
             align-items: center;
             background: linear-gradient(135deg, #2c3e50, #34495e);
             transition: background 0.5s ease;
+            position: relative;
         }
 
         .hidden {
@@ -89,7 +90,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 40px; /* Уменьшил размер шрифта */
+            font-size: 40px;
             font-weight: bold;
             color: red;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
@@ -108,11 +109,11 @@
         .dont-cheat-message {
             display: none;
             position: absolute;
-            top: 55%; /* Немного ниже надписи "CHEATS DETECTED!" */
+            top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 30px; /* Размер шрифта для новой надписи */
-            color: yellow; /* Цвет текста */
+            font-size: 30px;
+            color: yellow;
             font-weight: bold;
         }
 
@@ -162,9 +163,9 @@
             color: white;
         }
 
-        .upgrade-button {
-            margin-top: 10px;
+        .upgrade-button, .autoclicker-button {
             padding: 12px 25px;
+            margin-top: 10px;
             border: none;
             border-radius: 5px;
             background: #e67e22;
@@ -181,16 +182,7 @@
         }
 
         .autoclicker-button {
-            margin-top: 20px;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 5px;
             background: #e74c3c;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .autoclicker-button:hover {
@@ -200,6 +192,25 @@
 
         .autoclicker-active {
             background: #2ecc71;
+        }
+
+        .reset-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: #c0392b;
         }
     </style>
 </head>
@@ -231,10 +242,13 @@
         </div>
 
         <h3>Счётчик рублей: <span id="rubles-amount">0</span> руб.</h3>
+        
+        <!-- Кнопка сброса игры -->
+        <button class="reset-button" onclick="resetGame()">Сбросить игру</button>
     </div>
 
     <div class="cheats-message">CHEATS DETECTED!</div>
-    <div class="dont-cheat-message">Don't cheat please)</div>
+    <div class="dont-cheat-message">Don't cheat please :)</div>
 
     <script>
         let count = 0;
@@ -242,10 +256,68 @@
         let clickMultiplier = 1;
         let upgradeCost = 100;
         let autoclickerActive = false;
-        let autoclickerInterval = 1000; // Исходная скорость автокликера
-        let autoclickerIntervalId = null; // ID для интервала автокликера
+        let autoclickerInterval = 1000; // Начальная скорость автокликера
+        let autoclickerIntervalId = null; // ID для автокликера
         const clickLimit = 30; // Порог для детекции мошенничества
 
+        // Функция для сохранения состояния игры
+        function saveGameState() {
+            localStorage.setItem('count', count);
+            localStorage.setItem('clickMultiplier', clickMultiplier);
+            localStorage.setItem('upgradeCost', upgradeCost);
+            localStorage.setItem('autoclickerActive', autoclickerActive);
+            localStorage.setItem('autoclickerInterval', autoclickerInterval);
+        }
+
+        // Функция для загрузки состояния игры
+        function loadGameState() {
+            const savedCount = localStorage.getItem('count');
+            const savedClickMultiplier = localStorage.getItem('clickMultiplier');
+            const savedUpgradeCost = localStorage.getItem('upgradeCost');
+            const savedAutoclickerActive = localStorage.getItem('autoclickerActive');
+            const savedAutoclickerInterval = localStorage.getItem('autoclickerInterval');
+
+            if (savedCount !== null) count = parseInt(savedCount, 10);
+            if (savedClickMultiplier !== null) clickMultiplier = parseInt(savedClickMultiplier, 10);
+            if (savedUpgradeCost !== null) upgradeCost = parseInt(savedUpgradeCost, 10);
+            if (savedAutoclickerActive !== null) autoclickerActive = (savedAutoclickerActive === 'true');
+            if (savedAutoclickerInterval !== null) autoclickerInterval = parseInt(savedAutoclickerInterval, 10);
+
+            document.querySelector('.counter-text').innerText = count;
+            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
+            document.getElementById('upgrade-cost').innerText = upgradeCost;
+            document.getElementById('rubles-amount').innerText = Math.floor(count / 1000);
+
+            if (autoclickerActive) {
+                startAutoclicker();
+                document.getElementById('toggle-autoclicker-btn').classList.add('autoclicker-active');
+                document.getElementById('toggle-autoclicker-btn').innerText = 'Остановить автокликер';
+            }
+
+            updateProgressBar();
+        }
+
+        // Функция сброса игры
+        function resetGame() {
+            count = 0;
+            clickMultiplier = 1;
+            upgradeCost = 100;
+            autoclickerActive = false;
+            autoclickerInterval = 1000;
+
+            document.querySelector('.counter-text').innerText = count;
+            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
+            document.getElementById('upgrade-cost').innerText = upgradeCost;
+            document.getElementById('rubles-amount').innerText = Math.floor(count / 1000);
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('toggle-autoclicker-btn').classList.remove('autoclicker-active');
+            document.getElementById('toggle-autoclicker-btn').innerText = 'Активировать автокликер';
+
+            stopAutoclicker();
+            localStorage.clear();
+        }
+
+        // Сохранение состояния игры при изменении
         function incrementCounter() {
             const currentTime = Date.now();
             const timeDifference = currentTime - lastClickTime;
@@ -260,30 +332,7 @@
             document.querySelector('.counter-text').innerText = count;
             updateProgressBar();
             updateRubles();
-        }
-
-        function updateProgressBar() {
-            const progressBar = document.getElementById('progress-bar');
-            const percentage = Math.min((count / 1000000) * 100, 100); // 1,000,000 - максимальное значение
-            progressBar.style.width = percentage + '%';
-
-            // Обновление этапов
-            updateMilestones();
-        }
-
-        function updateMilestones() {
-            const milestones = [0, 100000, 500000, 1000000];
-            milestones.forEach((milestone) => {
-                const milestoneElement = document.getElementById(`milestone-${milestone}`);
-                if (count >= milestone) {
-                    milestoneElement.classList.add('reached');
-                }
-            });
-        }
-
-        function updateRubles() {
-            const rublesAmount = Math.floor(count / 1000); // 1 рубль = 1000 кликов
-            document.getElementById('rubles-amount').innerText = rublesAmount;
+            saveGameState(); // Сохраняем при каждом клике
         }
 
         function upgradeMultiplier() {
@@ -291,7 +340,7 @@
                 count -= upgradeCost;
                 clickMultiplier++;
                 document.getElementById('click-multiplier-level').innerText = clickMultiplier;
-                upgradeCost *= 2; // Увеличение стоимости улучшения
+                upgradeCost *= 2;
                 document.getElementById('upgrade-cost').innerText = upgradeCost;
 
                 // Уменьшение интервала автокликера при улучшении
@@ -303,8 +352,12 @@
 
                 updateProgressBar();
                 updateRubles();
+                saveGameState(); // Сохраняем при улучшении
             }
         }
+
+        // Загружаем игру при запуске страницы
+        window.onload = loadGameState;
 
         function toggleAutoclicker() {
             autoclickerActive = !autoclickerActive;
@@ -317,8 +370,11 @@
             } else {
                 stopAutoclicker();
             }
+
+            saveGameState(); // Сохраняем состояние автокликера
         }
 
+        // Функция автокликера
         function startAutoclicker() {
             autoclickerIntervalId = setInterval(() => {
                 if (autoclickerActive) {
@@ -326,6 +382,7 @@
                     document.querySelector('.counter-text').innerText = count;
                     updateProgressBar(); // Обновление прогресс-бара
                     updateRubles(); // Обновление счётчика рублей
+                    saveGameState(); // Сохраняем при автоклике
                 }
             }, autoclickerInterval); // Интервал автокликера
         }
@@ -334,6 +391,7 @@
             clearInterval(autoclickerIntervalId); // Остановка текущего интервала
         }
 
+        // Отображение сообщения о читах
         function displayCheatsMessage() {
             // Скрыть интерфейс и показать сообщение о читах
             document.getElementById('interface').style.display = 'none';
@@ -344,6 +402,36 @@
                 document.querySelector('.dont-cheat-message').style.display = 'block';
             }, 2000);
         }
+
+        // Функция обновления рублёвого счётчика
+        function updateRubles() {
+            const rublesAmount = Math.floor(count / 1000); // 1 рубль = 1000 кликов
+            document.getElementById('rubles-amount').innerText = rublesAmount;
+        }
+
+        // Функция обновления прогресс-бара
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progress-bar');
+            const percentage = Math.min((count / 1000000) * 100, 100); // 1,000,000 - максимальное значение
+            progressBar.style.width = percentage + '%';
+
+            // Обновление этапов
+            updateMilestones();
+        }
+
+        // Функция обновления этапов прогресса
+        function updateMilestones() {
+            const milestones = [0, 100000, 500000, 1000000];
+            milestones.forEach((milestone) => {
+                const milestoneElement = document.getElementById(`milestone-${milestone}`);
+                if (count >= milestone) {
+                    milestoneElement.classList.add('reached');
+                }
+            });
+        }
+
+        // Сохранение состояния игры перед выходом из страницы
+        window.addEventListener('beforeunload', saveGameState);
     </script>
 </body>
 </html>
