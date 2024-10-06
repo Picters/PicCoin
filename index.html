@@ -1,269 +1,28 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Современный счётчик кликов</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Основной стиль страницы */
-        html, body {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #e0e0e0, #ffffff);
-            user-select: none; /* Убираем выделение текста */
-        }
-
-        #interface {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            padding: 40px;
-            max-width: 400px;
-            width: 100%;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        /* Стиль кнопки для кликов */
-        .counter-button {
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            background: linear-gradient(145deg, #2196f3, #1976d2);
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
-            transition: background 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
-            outline: none; /* Убираем выделение кнопки */
-        }
-
-        /* Убираем синий квадратик при фокусе */
-        .counter-button:focus {
-            outline: none; /* Убираем выделение при фокусе */
-        }
-
-        .counter-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.3);
-        }
-
-        .counter-text {
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
-            transition: color 0.3s ease;
-        }
-
-        /* Кнопки для улучшений */
-        .upgrade-button, .reset-button {
-            width: 100%;
-            padding: 12px 20px;
-            margin-top: 15px;
-            border-radius: 10px;
-            border: none;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            background-color: #2196f3;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-            outline: none; /* Убираем выделение кнопки */
-        }
-
-        .upgrade-button:hover, .reset-button:hover {
-            background-color: #1976d2;
-            transform: translateY(-2px);
-        }
-
-        /* Кнопка сброса игры */
-        .reset-button {
-            background-color: #f44336;
-            margin-top: 20px;
-        }
-
-        .reset-button:hover {
-            background-color: #d32f2f;
-        }
-
-        /* Текущая версия внизу */
-        .version {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 14px;
-            color: rgba(0, 0, 0, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Стиль для сообщения об ошибке */
-        #error-message {
-            display: none; /* Изначально скрыто */
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(0, 0, 0, 0.85);
-            color: white;
-            text-align: center;
-            padding: 20px;
-            z-index: 1000;
-            animation: fade-in 0.5s forwards, fade-out 0.5s forwards 6.5s; /* Анимация появления и исчезновения */
-        }
-
-        /* Анимация появления и исчезновения */
-        @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes fade-out {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clicker Game</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="error-message">НАРУШЕНИЕ! НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ АВТОКЛИКЕР С ТАКОЙ СКОРОСТЬЮ! СКОРОСТЬ НЕ ДОЛЖНА БЫТЬ МЕНЬШЕ 30 МС.</div>
-    <div id="interface">
-        <button class="counter-button" onclick="incrementCounter()">
-            <span class="counter-text">0</span>
-        </button>
-
-        <div class="version">v5.3</div>
-
-        <div class="upgrade-panel">
-            <h3>Уровень мульти-кликов: <span id="click-multiplier-level">1</span></h3>
-            <p>Стоимость улучшения: <span id="upgrade-cost">100</span> кликов</p>
-            <button class="upgrade-button" onclick="upgradeMultiplier()">Улучшить мульти-клик</button>
+    <div class="container">
+        <button class="toggle-theme-button" onclick="toggleTheme()">Тёмная тема</button>
+        <div class="counter-container">
+            <button class="counter-button" onclick="incrementCounter(event)">Click</button>
+            <div class="counter-value" id="counter">0</div>
+            <div class="money-counter">Рубли: <span id="money">0.00</span></div>
         </div>
-
-        <h3>Счётчик рублей: <span id="rubles-amount">0.00</span> руб.</h3>
-        
-        <!-- Кнопка сброса игры -->
-        <button class="reset-button" onclick="confirmReset()">Сбросить игру</button>
+        <div class="upgrade-container">
+            <button class="upgrade-button" onclick="upgradeMultiplier()">Улучшение (x<span id="multiplier">1</span>)</button>
+        </div>
     </div>
 
-    <script>
-        let count = 0;
-        let clickMultiplier = 1;
-        let upgradeCost = 100;
-        let resetConfirmation = false; // Флаг для подтверждения сброса
-        let lastClickTime = 0; // Время последнего клика
-        const clickIntervalThreshold = 30; // Минимальный интервал между кликами (в миллисекундах)
+    <!-- Аудио -->
+    <audio id="click-sound" src="click.mp3" preload="auto"></audio>
+    <audio id="upgrade-sound" src="upgrade.mp3" preload="auto"></audio>
 
-        // Функция для сохранения состояния игры
-        function saveGameState() {
-            localStorage.setItem('count', count);
-            localStorage.setItem('clickMultiplier', clickMultiplier);
-            localStorage.setItem('upgradeCost', upgradeCost);
-        }
-
-        // Функция для загрузки состояния игры
-        function loadGameState() {
-            const savedCount = localStorage.getItem('count');
-            const savedClickMultiplier = localStorage.getItem('clickMultiplier');
-            const savedUpgradeCost = localStorage.getItem('upgradeCost');
-
-            if (savedCount !== null) count = parseInt(savedCount, 10);
-            if (savedClickMultiplier !== null) clickMultiplier = parseInt(savedClickMultiplier, 10);
-            if (savedUpgradeCost !== null) upgradeCost = parseInt(savedUpgradeCost, 10);
-
-            document.querySelector('.counter-text').innerText = count;
-            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
-            document.getElementById('upgrade-cost').innerText = upgradeCost;
-            document.getElementById('rubles-amount').innerText = (count / 5000).toFixed(2); // Форматирование с точностью до сотых
-        }
-
-        // Функция для сброса игры
-        function resetGame() {
-            count = 0;
-            clickMultiplier = 1;
-            upgradeCost = 100;
-            saveGameState();
-            document.querySelector('.counter-text').innerText = count;
-            document.getElementById('click-multiplier-level').innerText = clickMultiplier;
-            document.getElementById('upgrade-cost').innerText = upgradeCost;
-            document.getElementById('rubles-amount').innerText = (count / 5000).toFixed(2); // Форматирование с точностью до сотых
-        }
-
-        function confirmReset() {
-            if (!resetConfirmation) {
-                resetConfirmation = true;
-                document.querySelector('.reset-button').innerText = 'Подтвердите сброс';
-                setTimeout(() => {
-                    resetConfirmation = false;
-                    document.querySelector('.reset-button').innerText = 'Сбросить игру';
-                }, 2000); // Отмена подтверждения через 2 секунды
-            } else {
-                resetGame(); // Сброс игры
-            }
-        }
-
-        // Функция для инкремента кликов
-        function incrementCounter() {
-            const currentTime = Date.now();
-
-            // Проверка интервала между кликами
-            if (currentTime - lastClickTime < clickIntervalThreshold) {
-                showErrorAndReset(); // Показываем ошибку и сбрасываем игру
-                return; // Прерываем выполнение функции
-            }
-
-            lastClickTime = currentTime; // Обновляем время последнего клика
-
-            count += clickMultiplier;
-            document.querySelector('.counter-text').innerText = count;
-            document.getElementById('rubles-amount').innerText = (count / 5000).toFixed(2); // Форматирование с точностью до сотых
-
-            // Плавное изменение цвета кнопки
-            let randomColor1 = '#' + Math.floor(Math.random() * 16777215).toString(16);
-            let randomColor2 = '#' + Math.floor(Math.random() * 16777215).toString(16);
-            document.querySelector('.counter-button').style.background = `linear-gradient(145deg, ${randomColor1}, ${randomColor2})`;
-
-            saveGameState(); // Сохранение состояния игры
-        }
-
-        // Функция для показа ошибки и сброса игры
-        function showErrorAndReset() {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.style.display = 'block'; // Показываем сообщение
-            setTimeout(() => {
-                errorMessage.style.display = 'none'; // Скрываем сообщение через 7 секунд
-                resetGame(); // Сброс игры
-            }, 7000); // Время отображения сообщения
-        }
-
-        // Функция для улучшения мульти-кликов
-        function upgradeMultiplier() {
-            if (count >= upgradeCost) {
-                count -= upgradeCost;
-                clickMultiplier += 1;
-                upgradeCost = Math.floor(upgradeCost * 2.5); // Увеличение стоимости улучшения в 2.5 раза
-                document.getElementById('click-multiplier-level').innerText = clickMultiplier;
-                document.getElementById('upgrade-cost').innerText = upgradeCost;
-                document.querySelector('.counter-text').innerText = count;
-                document.getElementById('rubles-amount').innerText = (count / 5000).toFixed(2); // Форматирование с точностью до сотых
-                saveGameState(); // Сохранение состояния игры
-            }
-        }
-
-        // Загрузка состояния игры при загрузке страницы
-        window.onload = loadGameState;
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
