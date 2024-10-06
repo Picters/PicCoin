@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Современный счётчик кликов</title>
+    <title>Милый и минималистичный счётчик кликов</title>
     <style>
-        /* Основной стиль страницы с блюром фона */
+        /* Основной стиль страницы с милым и минималистичным дизайном */
         html, body {
             height: 100%;
             width: 100%;
@@ -15,17 +15,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: url('your-background-image.jpg') no-repeat center center;
-            background-size: cover;
-            backdrop-filter: blur(8px);
+            background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
             transition: background 0.5s ease;
         }
 
         #interface {
             text-align: center;
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             padding: 40px;
             max-width: 350px;
             width: 100%;
@@ -33,12 +31,12 @@
             position: relative;
         }
 
-        /* Стиль кнопки для кликов с плавной сменой градиента */
+        /* Стиль кнопки для кликов с мягкими цветами и анимациями */
         .counter-button {
             width: 160px;
             height: 160px;
             border-radius: 50%;
-            background: linear-gradient(145deg, #21d4fd, #b721ff);
+            background: linear-gradient(145deg, #a1c4fd, #c2e9fb);
             color: white;
             font-size: 32px;
             font-weight: bold;
@@ -47,13 +45,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.3);
+            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
             transition: all 0.4s ease;
         }
 
         /* Плавное изменение цвета при нажатии */
         .counter-button:active {
-            background: linear-gradient(145deg, #f093fb, #f5576c);
+            background: linear-gradient(145deg, #c1e1fc, #a1c4fd);
         }
 
         .counter-button:focus {
@@ -67,7 +65,7 @@
             transition: color 0.3s ease;
         }
 
-        /* Кнопки улучшений с мягкими тенями и анимациями */
+        /* Кнопки улучшений с милыми тенями и мягкими градиентами */
         .upgrade-button, .reset-button {
             width: 100%;
             padding: 12px 20px;
@@ -77,15 +75,15 @@
             font-size: 16px;
             font-weight: 600;
             color: white;
-            background: linear-gradient(145deg, #ff416c, #ff4b2b);
+            background: linear-gradient(145deg, #fbc2eb, #a6c1ee);
             cursor: pointer;
-            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .upgrade-button:hover, .reset-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.3);
+            box-shadow: 0px 15px 35px rgba(0, 0, 0, 0.2);
         }
 
         /* Анимация для числа кликов */
@@ -105,7 +103,7 @@
             animation: scaleUp 0.2s ease;
         }
 
-        /* Минималистичный стиль для текста */
+        /* Минималистичный и милый стиль для текста */
         h3 {
             font-size: 18px;
             color: #333;
@@ -128,31 +126,6 @@
             letter-spacing: 1px;
         }
 
-        /* Появление текста "НАРУШЕНИЕ" */
-        .violation-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            text-align: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .violation-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
     </style>
 </head>
 <body>
@@ -161,7 +134,7 @@
             <span class="counter-text" id="counter">0</span>
         </button>
 
-        <div class="version">v5.3</div>
+        <div class="version">v5.4</div>
 
         <div class="upgrade-panel">
             <h3>Уровень мульти-кликов: <span id="click-multiplier-level">1</span></h3>
@@ -175,34 +148,18 @@
         <button class="reset-button" onclick="confirmReset()">Сбросить игру</button>
     </div>
 
-    <!-- Появление нарушения -->
-    <div class="violation-overlay" id="violation-message">
-        НАРУШЕНИЕ, НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ АВТОКЛИКЕР С ТАКОЙ СКОРОСТЬЮ,<br>
-        СКОРОСТЬ НЕ ДОЛЖНА БЫТЬ МЕНЬШЕ 30 МС.<br>
-        Игра будет сброшена через 7 секунд...
-    </div>
-
     <script>
         let counter = 0;
         let multiplier = 1;
         let upgradeCost = 100;
         let rubles = 0;
-        let lastClickTime = 0;
-        let violationTimeout = null;
 
         function incrementCounter() {
-            const currentTime = Date.now();
-            if (currentTime - lastClickTime < 25) {
-                triggerViolation();
-                return;
-            }
-            lastClickTime = currentTime;
-
             counter += multiplier;
             document.getElementById('counter').innerText = counter;
             updateRubles();
 
-            if (counter % 5 === 0) { // Пример анимации для числа кликов
+            if (counter % 5 === 0) { // Анимация при каждом 5 клике
                 document.getElementById('counter').style.animation = 'scaleUp 0.2s ease';
             }
         }
@@ -215,9 +172,9 @@
         function upgradeMultiplier() {
             if (counter >= upgradeCost) {
                 counter -= upgradeCost;
-                multiplier *= 2.5;
-                upgradeCost *= 2.5;
-                document.getElementById('click-multiplier-level').innerText = multiplier.toFixed(2);
+                multiplier += 1;  // Увеличиваем мультиклики на 1
+                upgradeCost *= 2.5;  // Увеличиваем стоимость улучшения
+                document.getElementById('click-multiplier-level').innerText = multiplier;
                 document.getElementById('upgrade-cost').innerText = Math.round(upgradeCost);
                 document.getElementById('counter').innerText = counter;
                 updateRubles();
@@ -240,14 +197,6 @@
             document.getElementById('click-multiplier-level').innerText = multiplier;
             document.getElementById('upgrade-cost').innerText = upgradeCost;
             document.getElementById('rubles-amount').innerText = rubles.toFixed(2);
-        }
-
-        function triggerViolation() {
-            document.getElementById('violation-message').classList.add('show');
-            violationTimeout = setTimeout(() => {
-                document.getElementById('violation-message').classList.remove('show');
-                resetGame();
-            }, 7000);
         }
     </script>
 </body>
